@@ -3,7 +3,7 @@
  * Plugin Name: TraqLeads Tracking
  * Plugin URI:  https://traqleads.com
  * Description: First-party proxy for TraqLeads affiliate tracking. Serves the tracking script and proxies events through your own domain to bypass ad blockers.
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      TraqLeads
  * Author URI:  https://traqleads.com
  * License:     GPLv2 or later
@@ -294,6 +294,24 @@ add_action('admin_init', function () {
     }, 'traqleads', 'traqleads_main');
 });
 
+// ==========================================================================
+// Clear script cache action
+// ==========================================================================
+
+add_action('admin_post_traqleads_clear_cache', function () {
+    if (!current_user_can('manage_options')) {
+        wp_die(__('Unauthorized', 'traqleads'));
+    }
+    check_admin_referer('traqleads_clear_cache');
+    delete_transient('traqleads_tl_js');
+    delete_transient('traqleads_tl_js_hash');
+    wp_redirect(add_query_arg([
+        'page'    => 'traqleads',
+        'cleared' => '1',
+    ], admin_url('options-general.php')));
+    exit;
+});
+
 // Re-flush rewrite rules when proxy path setting changes
 add_action('update_option_traqleads_proxy_path', function () {
     traqleads_register_rewrite_rules();
@@ -311,6 +329,9 @@ function traqleads_settings_page(): void
     ?>
     <div class="wrap">
         <h1>TraqLeads Tracking</h1>
+        <?php if (isset($_GET['cleared']) && $_GET['cleared'] === '1'): ?>
+            <div class="notice notice-success is-dismissible"><p><?php _e('Script cache cleared. The tracking script will be re-fetched on the next page load.', 'traqleads'); ?></p></div>
+        <?php endif; ?>
         <form method="post" action="options.php">
             <?php
             settings_fields('traqleads_settings');
@@ -338,6 +359,15 @@ function traqleads_settings_page(): void
                     </tr>
                 </tbody>
             </table>
+
+            <p style="margin-top: 12px;">
+                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline;">
+                    <input type="hidden" name="action" value="traqleads_clear_cache" />
+                    <?php wp_nonce_field('traqleads_clear_cache'); ?>
+                    <?php submit_button(__('Clear Script Cache', 'traqleads'), 'secondary', 'submit', false); ?>
+                </form>
+                <span style="margin-left: 8px; color: #646970; font-size: 13px;">Forces a fresh fetch of tl.js from the TraqLeads API.</span>
+            </p>
 
             <h3>Manual Installation (optional)</h3>
             <p>The plugin auto-injects the script on all frontend pages. If you prefer manual placement, disable the auto-inject by adding this to your theme's <code>functions.php</code>:</p>
