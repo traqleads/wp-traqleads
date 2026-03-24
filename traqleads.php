@@ -16,6 +16,17 @@ if (!defined('ABSPATH')) {
 }
 
 // ==========================================================================
+// Auto-update from GitHub (traqleads/wp-traqleads)
+// ==========================================================================
+require_once plugin_dir_path(__FILE__) . 'plugin-update-checker/load-v5p6.php';
+$traqleadsUpdateChecker = YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+    'https://github.com/traqleads/wp-traqleads/',
+    __FILE__,
+    'traqleads'
+);
+$traqleadsUpdateChecker->getVcsApi()->enableReleaseAssets();
+
+// ==========================================================================
 // Activation / Deactivation — flush rewrite rules
 // ==========================================================================
 
