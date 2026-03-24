@@ -4,7 +4,7 @@ Tags: affiliate, tracking, referral, analytics
 Requires at least: 5.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -43,6 +43,9 @@ TraqLeads Tracking is a lightweight WordPress plugin that routes all affiliate t
 * **Proxy Path** — The URL prefix for proxy endpoints (default: `tq`). Change to any short path. Re-save Permalinks after changing.
 
 == Changelog ==
+
+= 1.3.0 =
+* Versioned script URL path for reliable browser cache busting (/v130/tl.js).
 
 = 1.2.0 =
 * Added auto-update support via GitHub releases.

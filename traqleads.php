@@ -3,7 +3,7 @@
  * Plugin Name: TraqLeads Tracking
  * Plugin URI:  https://traqleads.com
  * Description: First-party proxy for TraqLeads affiliate tracking. Serves the tracking script and proxies events through your own domain to bypass ad blockers.
- * Version:     1.2.0
+ * Version:     1.3.0
  * Author:      TraqLeads
  * Author URI:  https://traqleads.com
  * License:     GPLv2 or later
@@ -14,6 +14,8 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+define('TRAQLEADS_VERSION', '1.3.0');
 
 // ==========================================================================
 // Auto-update from GitHub (traqleads/wp-traqleads)
@@ -50,6 +52,7 @@ function traqleads_register_rewrite_rules(): void
         $path = 'tq';
     }
     add_rewrite_rule('^' . $path . '/tl\.js$', 'index.php?traqleads_action=script', 'top');
+    add_rewrite_rule('^' . $path . '/v[0-9]+/tl\.js$', 'index.php?traqleads_action=script', 'top');
     add_rewrite_rule('^' . $path . '/t/?$', 'index.php?traqleads_action=track', 'top');
 }
 
@@ -212,9 +215,11 @@ add_action('wp_footer', function () {
         $path = 'tq';
     }
 
+    $ver = str_replace('.', '', TRAQLEADS_VERSION);
     printf(
-        '<script async src="/%s/tl.js" data-tl="%s"></script>' . "\n",
+        '<script async src="/%s/v%s/tl.js" data-tl="%s"></script>' . "\n",
         esc_attr($path),
+        esc_attr($ver),
         esc_attr($pid)
     );
 });
