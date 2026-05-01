@@ -3,7 +3,7 @@
  * Plugin Name: TraqLeads Tracking
  * Plugin URI:  https://traqleads.com
  * Description: First-party proxy for TraqLeads affiliate tracking. Serves the tracking script and proxies events through your own domain to bypass ad blockers.
- * Version:     1.3.1
+ * Version:     1.3.2
  * Author:      TraqLeads
  * Author URI:  https://traqleads.com
  * License:     GPLv2 or later
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('TRAQLEADS_VERSION', '1.3.1');
+define('TRAQLEADS_VERSION', '1.3.2');
 
 // ==========================================================================
 // Auto-update from GitHub (traqleads/wp-traqleads)
@@ -337,6 +337,24 @@ add_action('admin_post_traqleads_clear_cache', function () {
     exit;
 });
 
+// ==========================================================================
+// Flush rewrite rules action
+// ==========================================================================
+
+add_action('admin_post_traqleads_flush_rules', function () {
+    if (!current_user_can('manage_options')) {
+        wp_die(__('Unauthorized', 'traqleads'));
+    }
+    check_admin_referer('traqleads_flush_rules');
+    traqleads_register_rewrite_rules();
+    flush_rewrite_rules();
+    wp_redirect(add_query_arg([
+        'page'    => 'traqleads',
+        'flushed' => '1',
+    ], admin_url('options-general.php')));
+    exit;
+});
+
 // Re-flush rewrite rules when proxy path setting changes
 add_action('update_option_traqleads_proxy_path', function () {
     traqleads_register_rewrite_rules();
@@ -356,6 +374,9 @@ function traqleads_settings_page(): void
         <h1>TraqLeads Tracking</h1>
         <?php if (isset($_GET['cleared']) && $_GET['cleared'] === '1'): ?>
             <div class="notice notice-success is-dismissible"><p><?php _e('Script cache cleared. The tracking script will be re-fetched on the next page load.', 'traqleads'); ?></p></div>
+        <?php endif; ?>
+        <?php if (isset($_GET['flushed']) && $_GET['flushed'] === '1'): ?>
+            <div class="notice notice-success is-dismissible"><p><?php _e('Rewrite rules flushed. The tracking script URL should now resolve correctly.', 'traqleads'); ?></p></div>
         <?php endif; ?>
         <form method="post" action="options.php">
             <?php
@@ -392,6 +413,14 @@ function traqleads_settings_page(): void
                     <?php submit_button(__('Clear Script Cache', 'traqleads'), 'secondary', 'submit', false); ?>
                 </form>
                 <span style="margin-left: 8px; color: #646970; font-size: 13px;">Forces a fresh fetch of tl.js from the TraqLeads API.</span>
+            </p>
+            <p>
+                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline;">
+                    <input type="hidden" name="action" value="traqleads_flush_rules" />
+                    <?php wp_nonce_field('traqleads_flush_rules'); ?>
+                    <?php submit_button(__('Flush Rewrite Rules', 'traqleads'), 'secondary', 'submit', false); ?>
+                </form>
+                <span style="margin-left: 8px; color: #646970; font-size: 13px;">Fix 404 errors on the tracking script URL. Run this if <code>/<?php echo esc_html($path); ?>/tl.js</code> returns Not Found.</span>
             </p>
 
             <h3>Manual Installation (optional)</h3>
