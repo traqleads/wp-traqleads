@@ -4,7 +4,7 @@ Tags: affiliate, tracking, referral, analytics
 Requires at least: 5.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.3.2
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,8 @@ TraqLeads Tracking is a lightweight WordPress plugin that routes all affiliate t
 
 **Features:**
 
-* Zero JavaScript configuration — the script auto-detects the proxy endpoint
+* Self-healing delivery — automatically picks a script URL that works on your host (clean URL, query string, or a static file), so tracking works even on managed hosts like Pressable, WP Engine, and Kinsta that block dynamic .js URLs
+* Built-in diagnostics — a self-test detects a broken script URL and emails the details so it can be fixed
 * Configurable proxy path to avoid any detection patterns
 * Automatic script caching (24-hour refresh)
 * Passes real visitor IP and User-Agent for accurate geo-location
@@ -43,6 +44,16 @@ TraqLeads Tracking is a lightweight WordPress plugin that routes all affiliate t
 * **Proxy Path** — The URL prefix for proxy endpoints (default: `tq`). Change to any short path. Re-save Permalinks after changing.
 
 == Changelog ==
+
+= 1.4.0 =
+* Fixed: tracking script returned 404 on managed-nginx hosts (Pressable, WP Engine, Kinsta) that serve any URL ending in ".js" as a static file before WordPress runs. The script is now served from an extensionless URL, with automatic fallbacks.
+* New: self-healing delivery — the plugin generates both a dynamic route and a static file in uploads, loopback-tests each, and automatically uses whichever works on the host.
+* New: built-in diagnostics with a "Run Diagnostics" button and a delivery-status panel; if no delivery method works, the plugin emails the full diagnostics.
+* New: the served script now carries its own event-endpoint configuration, so tracking keeps working regardless of the script URL scheme or permalink settings (including plain permalinks and subdirectory installs).
+* Fixed: a fatal error when saving settings on PHP 7.4 (used a PHP 8.0-only function).
+* Fixed: rate limiting now uses a true fixed window instead of an ever-extending one.
+* Security: event requests are bound to the configured Program ID; request body size is capped; real client IP is used behind proxies/CDNs; API URL is validated against private/loopback addresses; cached-script integrity now uses a keyed HMAC.
+* Docs: corrected the manual opt-out snippet (use the traqleads_auto_inject filter).
 
 = 1.3.2 =
 * Added "Flush Rewrite Rules" button to admin settings page — fixes 404 errors on the tracking script URL without needing to visit Settings > Permalinks.
